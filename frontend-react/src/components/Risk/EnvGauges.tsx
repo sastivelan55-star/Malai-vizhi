@@ -1,0 +1,99 @@
+// src/components/Risk/EnvGauges.tsx
+import React from 'react';
+import { Droplets, Thermometer, Wind, CloudRain } from 'lucide-react';
+import type { LocationData } from '../../types';
+
+interface EnvGaugesProps {
+  location: LocationData | null;
+  allLocations: LocationData[];
+}
+
+interface GaugeProps {
+  label: string;
+  value: number;
+  unit: string;
+  max: number;
+  icon: React.ElementType;
+  color: string;
+}
+
+const Gauge: React.FC<GaugeProps> = ({ label, value, unit, max, icon: Icon, color }) => {
+  const pct = Math.min(100, (value / max) * 100);
+  return (
+    <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-1.5">
+          <Icon size={13} style={{ color }} />
+          <span className="text-xs font-semibold tracking-widest uppercase text-slate-400">{label}</span>
+        </div>
+        <span className="text-lg font-bold text-[#102A43] tabular-nums">
+          {value.toFixed(1)}<span className="text-xs font-normal text-slate-400 ml-0.5">{unit}</span>
+        </span>
+      </div>
+      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-valuenow={value} aria-valuemin={0} aria-valuemax={max} aria-label={`${label}: ${value}${unit}`}>
+        <div
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${pct}%`, background: color }}
+        />
+      </div>
+      <div className="flex justify-between mt-1">
+        <span className="text-[10px] text-slate-300">0</span>
+        <span className="text-[10px] text-slate-300">{max}{unit}</span>
+      </div>
+    </div>
+  );
+};
+
+export const EnvGauges: React.FC<EnvGaugesProps> = ({ location, allLocations }) => {
+  // Use selected location or compute averages
+  const target = location || null;
+  const avgRain = allLocations.length ? allLocations.reduce((s, l) => s + l.rainfall_mm, 0) / allLocations.length : 0;
+  const avgMoist = allLocations.length ? allLocations.reduce((s, l) => s + l.soil_moisture, 0) / allLocations.length : 0;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-[#102A43]">Environmental Conditions</h3>
+        {!target && <span className="text-xs text-slate-400">Regional Average</span>}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Gauge
+          label="Rainfall"
+          value={target ? target.rainfall_mm : avgRain}
+          unit=" mm"
+          max={250}
+          icon={CloudRain}
+          color="#14B8A6"
+        />
+        <Gauge
+          label="Soil Moisture"
+          value={target ? target.soil_moisture : avgMoist}
+          unit="%"
+          max={100}
+          icon={Droplets}
+          color="#0F766E"
+        />
+        {target?.temperature !== undefined && (
+          <Gauge
+            label="Temperature"
+            value={target.temperature}
+            unit="°C"
+            max={45}
+            icon={Thermometer}
+            color="#F59E0B"
+          />
+        )}
+        {target?.humidity !== undefined && (
+          <Gauge
+            label="Humidity"
+            value={target.humidity}
+            unit="%"
+            max={100}
+            icon={Wind}
+            color="#6366F1"
+          />
+        )}
+      </div>
+    </div>
+  );
+};
