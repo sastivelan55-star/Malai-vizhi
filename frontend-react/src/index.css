@@ -70,3 +70,31 @@
     opacity: 0;
   }
 }
+
+@keyframes progress {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(10%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-progress {
+  animation: progress 1.5s ease-in-out infinite;
+}
+
+/* PWA Mobile Optimization & Safe Areas */
+@supports (padding-top: env(safe-area-inset-top)) {
+  header {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+button, a, input, select, textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  overscroll-behavior-x: none;
+  -webkit-overflow-scrolling: touch;
+}
+

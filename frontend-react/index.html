@@ -3,17 +3,117 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Responsive & PWA Viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
     <title>MALAI VIZHI — AI-Based Landslide Early Warning System</title>
     <meta name="description" content="AI-powered geospatial intelligence and early warning monitoring system for landslide-prone terrain in Northeast India." />
-    
+
+    <!-- PWA Web App Capabilities -->
+    <meta name="theme-color" content="#071A2B" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Malai Vizhi" />
+    <meta name="application-name" content="Malai Vizhi" />
+
     <!-- Preconnect & Inter Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <style>
+      /* Standalone Splash Animation */
+      #pwa-splash {
+        position: fixed;
+        inset: 0;
+        background: #071A2B;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Inter', sans-serif;
+        color: #FFFFFF;
+        z-index: 9999;
+      }
+      .splash-logo-box {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        background: #0B2D42;
+        border: 1px solid rgba(20, 184, 166, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        margin-bottom: 20px;
+        position: relative;
+      }
+      .splash-title {
+        font-size: 20px;
+        font-weight: 900;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        margin: 0 0 4px 0;
+        color: #FFFFFF;
+      }
+      .splash-subtitle {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        color: #2DD4BF;
+        text-transform: uppercase;
+        margin: 0 0 28px 0;
+      }
+      .splash-bar {
+        width: 180px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+        overflow: hidden;
+        position: relative;
+      }
+      .splash-bar-fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 50%;
+        background: linear-gradient(90deg, #14B8A6, #2DD4BF);
+        border-radius: 999px;
+        animation: splash-sweep 1.4s ease-in-out infinite;
+      }
+      @keyframes splash-sweep {
+        0% { transform: translateX(-100%); }
+        50% { transform: translateX(100%); }
+        100% { transform: translateX(300%); }
+      }
+    </style>
   </head>
   <body class="bg-[#F5F7F8] text-[#102A43] antialiased">
-    <div id="root"></div>
+    <div id="root">
+      <!-- Instant PWA Splash Screen (Replaced automatically when React mounts) -->
+      <div id="pwa-splash">
+        <div class="splash-logo-box">
+          <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 36 L18 14 L26 24 L32 16 L42 36 Z" fill="#0B3948" stroke="#14B8A6" stroke-width="1.5" stroke-linejoin="round" />
+            <path d="M18 14 L22 21 L14 21 Z" fill="#14B8A6" opacity="0.7" />
+            <path d="M32 16 L36 22 L28 22 Z" fill="#14B8A6" opacity="0.5" />
+            <ellipse cx="24" cy="30" rx="11" ry="6.5" stroke="#2DD4BF" stroke-width="1.5" fill="none" />
+            <circle cx="24" cy="30" r="3.5" fill="#14B8A6" />
+            <circle cx="24" cy="30" r="1.5" fill="#071A2B" />
+          </svg>
+        </div>
+        <h1 class="splash-title">MALAI VIZHI</h1>
+        <p class="splash-subtitle">AI LANDSLIDE INTELLIGENCE</p>
+        <div class="splash-bar">
+          <div class="splash-bar-fill"></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

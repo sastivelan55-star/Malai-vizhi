@@ -9,8 +9,13 @@ import type {
   AnalyticsData,
 } from '../types';
 
-// Configurable API base URL: respects VITE_API_URL (recommended) or VITE_API_BASE, falls back to same-origin ''
-const rawBase = ((import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE || '') as string).trim();
+// Configurable API base URL: respects VITE_API_BASE_URL (Task 9) or VITE_API_URL or VITE_API_BASE, falls back to same-origin ''
+const rawBase = ((
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_API_BASE ||
+  ''
+) as string).trim();
 export const API_BASE = rawBase.replace(/\/+$/, '');
 const BASE = API_BASE;
 

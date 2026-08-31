@@ -43,7 +43,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <Layout fullWidth noFooter>
-      <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
+      <div className="flex flex-col min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] lg:overflow-hidden">
         {/* Dashboard Header */}
         <div className="bg-white border-b border-slate-100 px-4 sm:px-6 py-3 flex-shrink-0">
           <div className="max-w-screen-xl mx-auto flex flex-wrap items-center justify-between gap-3">
@@ -78,23 +78,23 @@ export const Dashboard: React.FC = () => {
         )}
 
         {/* Main content area */}
-        <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
+        <div className="flex-1 lg:overflow-hidden flex flex-col lg:flex-row">
           {/* Left panel — overview + map */}
-          <div className="flex-1 flex flex-col overflow-hidden p-4 sm:p-6 gap-4 min-w-0">
+          <div className="flex-1 flex flex-col p-4 sm:p-6 gap-4 min-w-0">
             {/* Risk overview */}
             <div className="flex-shrink-0">
               <RiskOverviewCards locations={locations} loading={locLoading} />
             </div>
 
-            {/* Map — takes remaining height */}
-            <div className="flex-1 relative min-h-[320px]">
+            {/* Map — responsive height */}
+            <div className="h-[360px] sm:h-[420px] lg:h-auto lg:flex-1 relative min-h-[300px]">
               <StationMap
                 locations={locations}
                 selectedId={selectedId}
                 onSelectLocation={handleSelectLocation}
               />
               {/* Map legend */}
-              <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg border border-slate-100 px-3 py-2 flex items-center gap-3 text-xs shadow-sm" aria-label="Map legend">
+              <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg border border-slate-100 px-3 py-2 flex items-center gap-3 text-xs shadow-sm z-[400]" aria-label="Map legend">
                 {[
                   { color: '#DC2626', label: 'High' },
                   { color: '#F59E0B', label: 'Moderate' },
@@ -106,13 +106,13 @@ export const Dashboard: React.FC = () => {
                   </div>
                 ))}
                 <div className="text-slate-300 text-xs">·</div>
-                <span className="text-slate-400 font-medium">Click marker for details</span>
+                <span className="text-slate-400 font-medium hidden sm:inline">Click marker for details</span>
               </div>
             </div>
           </div>
 
           {/* Right panel — sidebar */}
-          <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 border-t lg:border-t-0 lg:border-l border-slate-100 flex flex-col overflow-y-auto bg-[#F5F7F8]">
+          <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 border-t lg:border-t-0 lg:border-l border-slate-100 flex flex-col lg:overflow-y-auto bg-[#F5F7F8]">
             <div className="p-4 flex flex-col gap-4">
               {/* Location Intelligence */}
               {selectedId ? (

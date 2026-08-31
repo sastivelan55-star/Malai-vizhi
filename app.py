@@ -135,6 +135,44 @@ def serve_assets(filename):
     return jsonify({"error": "Asset not found"}), 404
 
 
+@app.route("/manifest.webmanifest")
+def serve_manifest():
+    """Serve PWA web app manifest."""
+    return send_from_directory(DIST_DIR, "manifest.webmanifest", mimetype="application/manifest+json")
+
+
+@app.route("/registerSW.js")
+def serve_register_sw():
+    """Serve PWA service worker registration script."""
+    return send_from_directory(DIST_DIR, "registerSW.js", mimetype="application/javascript")
+
+
+@app.route("/sw.js")
+def serve_sw():
+    """Serve PWA service worker with zero-cache headers for instant updates."""
+    resp = send_from_directory(DIST_DIR, "sw.js", mimetype="application/javascript")
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    return resp
+
+
+@app.route("/workbox-<path:filename>")
+def serve_workbox(filename):
+    """Serve Workbox runtime chunks."""
+    return send_from_directory(DIST_DIR, f"workbox-{filename}", mimetype="application/javascript")
+
+
+@app.route("/pwa-<path:filename>")
+def serve_pwa_icons(filename):
+    """Serve PWA icon assets."""
+    return send_from_directory(DIST_DIR, f"pwa-{filename}")
+
+
+@app.route("/apple-touch-icon.png")
+def serve_apple_touch_icon():
+    """Serve Apple touch icon."""
+    return send_from_directory(DIST_DIR, "apple-touch-icon.png", mimetype="image/png")
+
+
 @app.route("/favicon.svg")
 def serve_favicon():
     """Serve favicon."""

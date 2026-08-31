@@ -4,6 +4,7 @@ import { NavLink } from 'react-router-dom';
 import { Menu, X, Bell, LayoutDashboard, AlertTriangle, FileText, BarChart2, HelpCircle, ShieldCheck } from 'lucide-react';
 import { Logo } from '../UI/Logo';
 import { StatusBadge } from '../UI/StatusBadge';
+import { InstallPWA } from '../UI/InstallPWA';
 import { useSystemStatus } from '../../hooks/useSystemStatus';
 
 const NAV_ITEMS = [
@@ -71,6 +72,9 @@ export const Header: React.FC = () => {
             </NavLink>
           )}
 
+          {/* PWA Install Button */}
+          <InstallPWA variant="button" className="hidden md:flex" />
+
           {/* Admin */}
           <NavLink
             to="/admin"
@@ -122,7 +126,8 @@ export const Header: React.FC = () => {
               Admin Portal
             </NavLink>
           </div>
-          <div className="mt-3 pt-3 border-t border-white/5">
+          <div className="mt-3 pt-3 border-t border-white/5 flex flex-col gap-2.5">
+            <InstallPWA variant="banner" />
             <StatusBadge online={online} lastUpdated={lastInf} />
           </div>
         </div>
