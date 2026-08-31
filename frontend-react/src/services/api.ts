@@ -9,12 +9,14 @@ import type {
   AnalyticsData,
 } from '../types';
 
-// Configurable API base URL: respects VITE_API_BASE_URL (Task 9) or VITE_API_URL or VITE_API_BASE, falls back to same-origin ''
+// Configurable API base URL: respects VITE_API_BASE_URL or VITE_API_URL or VITE_API_BASE.
+// In native mobile app runtime (Capacitor), automatically defaults to deployed production backend URL.
+const isCapacitor = typeof (window as unknown as { Capacitor?: unknown }).Capacitor !== 'undefined';
 const rawBase = ((
   import.meta.env.VITE_API_BASE_URL ||
   import.meta.env.VITE_API_URL ||
   import.meta.env.VITE_API_BASE ||
-  ''
+  (isCapacitor ? 'https://malai-vizhi.onrender.com' : '')
 ) as string).trim();
 export const API_BASE = rawBase.replace(/\/+$/, '');
 const BASE = API_BASE;
