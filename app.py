@@ -48,14 +48,14 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app = Flask(__name__, static_folder=None)
 
-# CORS — allow specific origins in production via ALLOWED_ORIGINS env var
-# In development (empty / unset) all origins are allowed for convenience.
-_raw_origins = os.environ.get("ALLOWED_ORIGINS", "")
-CORS(
-    app,
-    origins=[o.strip() for o in _raw_origins.split(",") if o.strip()] or "*",
-    supports_credentials=True,
-)
+# CORS configuration — support development and production deployments
+_raw_origins = os.environ.get("ALLOWED_ORIGINS", "").strip()
+if _raw_origins:
+    _allowed = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+    CORS(app, resources={r"/*": {"origins": _allowed}}, supports_credentials=True)
+else:
+    # Allow all origins so frontend (Vercel, Render Static Site, localhost) can connect without CORS blocks
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
@@ -74,8 +74,32 @@ def _row_to_dict(row) -> dict:
 # ---------------------------------------------------------------------------
 
 DIST_DIR = os.path.join(BASE_DIR, "frontend-react", "dist")
+LEGACY_DIR = os.path.join(BASE_DIR, "frontend")
+
 
 @app.route("/")
+def serve_root():
+    """Serve React SPA if built, legacy frontend if present, or API status JSON."""
+    react_index = os.path.join(DIST_DIR, "index.html")
+    if os.path.exists(react_index):
+        return send_from_directory(DIST_DIR, "index.html")
+    legacy_index = os.path.join(LEGACY_DIR, "index.html")
+    if os.path.exists(legacy_index):
+        return send_from_directory(LEGACY_DIR, "index.html")
+    return jsonify({
+        "service": "Malai Vizhi API",
+        "status": "online",
+        "version": "1.0",
+        "endpoints": {
+            "health": "/api/health",
+            "risk_data": "/api/risk-data",
+            "alerts": "/api/alerts",
+            "system_status": "/api/system-status",
+            "reports": "/api/reports"
+        }
+    }), 200
+
+
 @app.route("/dashboard")
 @app.route("/alerts")
 @app.route("/report")
@@ -86,29 +110,59 @@ DIST_DIR = os.path.join(BASE_DIR, "frontend-react", "dist")
 @app.route("/login")
 @app.route("/admin")
 def serve_spa():
-    """Serve the React SPA shell. Falls back gracefully if build not present."""
-    index_path = os.path.join(DIST_DIR, "index.html")
-    if os.path.exists(index_path):
+    """Serve the React SPA shell for sub-routes or return API online confirmation."""
+    react_index = os.path.join(DIST_DIR, "index.html")
+    if os.path.exists(react_index):
         return send_from_directory(DIST_DIR, "index.html")
-    return jsonify({"error": "Frontend not built. Run: cd frontend-react && npm run build"}), 503
+    legacy_index = os.path.join(LEGACY_DIR, "index.html")
+    if os.path.exists(legacy_index):
+        return send_from_directory(LEGACY_DIR, "index.html")
+    return jsonify({
+        "service": "Malai Vizhi API",
+        "status": "online",
+        "route": request.path,
+        "message": "Frontend is hosted separately or not yet built."
+    }), 200
 
 
 @app.route("/assets/<path:filename>")
 def serve_assets(filename):
     """Serve compiled Vite assets (JS, CSS, SVGs)."""
-    return send_from_directory(os.path.join(DIST_DIR, "assets"), filename)
+    if os.path.exists(os.path.join(DIST_DIR, "assets")):
+        return send_from_directory(os.path.join(DIST_DIR, "assets"), filename)
+    if os.path.exists(os.path.join(LEGACY_DIR, "static")):
+        return send_from_directory(os.path.join(LEGACY_DIR, "static"), filename)
+    return jsonify({"error": "Asset not found"}), 404
 
 
 @app.route("/favicon.svg")
 def serve_favicon():
     """Serve favicon."""
-    return send_from_directory(DIST_DIR, "favicon.svg")
+    if os.path.exists(os.path.join(DIST_DIR, "favicon.svg")):
+        return send_from_directory(DIST_DIR, "favicon.svg")
+    return send_from_directory(UPLOAD_DIR, "favicon.svg") if os.path.exists(os.path.join(UPLOAD_DIR, "favicon.svg")) else ("", 204)
 
 
 @app.route("/uploads/<path:filename>")
 def serve_uploads(filename):
     """Serve uploaded citizen hazard photos."""
     return send_from_directory(UPLOAD_DIR, filename)
+
+
+# ---------------------------------------------------------------------------
+# Global JSON Error Handlers (avoid HTML 500 error pages in production API)
+# ---------------------------------------------------------------------------
+
+@app.errorhandler(404)
+def handle_404(e):
+    if request.path.startswith("/api/"):
+        return jsonify({"error": "Not Found", "message": f"Endpoint {request.path} not found"}), 404
+    return serve_root()
+
+
+@app.errorhandler(500)
+def handle_500(e):
+    return jsonify({"error": "Internal Server Error", "message": str(e)}), 500
 
 
 # ---------------------------------------------------------------------------
@@ -119,13 +173,12 @@ def serve_uploads(filename):
 def health_check():
     """System health check endpoint."""
     return jsonify({
-        "status": "healthy",
-        "service": "Malai Vizhi — AI Landslide Early Warning System",
-        "version": "2.4.0",
+        "status": "ok",
+        "service": "Malai Vizhi",
+        "version": "1.0",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "region": "North Eastern Region (NER), India",
-        "ml_model": "Physics-Informed XGBoost + Soil Saturation Estimator v2"
-    })
+        "region": "North Eastern Region (NER), India"
+    }), 200
 
 
 @app.route("/api/system-status", methods=["GET"])

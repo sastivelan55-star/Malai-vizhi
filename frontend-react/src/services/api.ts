@@ -9,7 +9,17 @@ import type {
   AnalyticsData,
 } from '../types';
 
-const BASE = (import.meta.env.VITE_API_BASE as string | undefined) || '';
+// Configurable API base URL: respects VITE_API_URL (recommended) or VITE_API_BASE, falls back to same-origin ''
+const rawBase = ((import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE || '') as string).trim();
+export const API_BASE = rawBase.replace(/\/+$/, '');
+const BASE = API_BASE;
+
+export function getUploadUrl(photoPath?: string): string {
+  if (!photoPath) return '';
+  if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) return photoPath;
+  const clean = photoPath.startsWith('/') ? photoPath : `/${photoPath}`;
+  return `${BASE}${clean}`;
+}
 
 async function request<T>(
   path: string,

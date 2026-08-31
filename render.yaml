@@ -1,43 +1,40 @@
-# render.yaml — Render.com deployment configuration for MALAI VIZHI
-# Deploys a single web service: Flask serves both the API and the React SPA.
-#
-# Before deploying:
-#   1. Push this file to GitHub
-#   2. In Render dashboard → New → Blueprint → connect your repo
-#   3. Set ALLOWED_ORIGINS to your Render service URL after first deploy
-#
-# Docs: https://render.com/docs/blueprint-spec
+# render.yaml — Render.com Blueprint for MALAI VIZHI
+# Defines the Python Flask API web service and the React Static Site frontend
 
 services:
+  # ---------------------------------------------------------------------------
+  # 1. Backend Flask API Web Service
+  # ---------------------------------------------------------------------------
   - type: web
-    name: malai-vizhi
+    name: malai-vizhi-api
     runtime: python
-    region: singapore          # Closest to India for SIH demo
+    region: singapore
     plan: free
-
-    # Build: install Python deps, then build the React frontend
-    buildCommand: |
-      pip install -r requirements.txt
-      cd frontend-react && npm install && npm run build
-
-    # Start: gunicorn WSGI server — never debug=True in production
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
-
     envVars:
       - key: FLASK_DEBUG
-        value: false
+        value: "false"
       - key: ALLOWED_ORIGINS
-        # Set this to your Render URL after first deploy, e.g.:
-        # https://malai-vizhi.onrender.com
-        value: ""
-      - key: PORT
-        generateValue: false   # Render injects PORT automatically
+        value: "*"
 
-    # Persist uploads between deploys using a Render Disk
-    # Note: Free plan does not include persistent disk.
-    # For SIH demo: uploads are ephemeral (lost on redeploy).
-    # To enable persistence, uncomment and upgrade plan:
-    # disk:
-    #   name: malai-vizhi-uploads
-    #   mountPath: /opt/render/project/src/uploads
-    #   sizeGB: 1
+  # ---------------------------------------------------------------------------
+  # 2. React + Vite Frontend Static Site
+  # ---------------------------------------------------------------------------
+  - type: static
+    name: malai-vizhi-frontend
+    region: singapore
+    plan: free
+    rootDir: frontend-react
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: malai-vizhi-api
+          property: host
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

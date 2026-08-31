@@ -2,6 +2,7 @@
 import React from 'react';
 import { MapPin, Clock, Tag, Image } from 'lucide-react';
 import type { CitizenReport } from '../../types';
+import { getUploadUrl } from '../../services/api';
 
 interface VerifiedReportsProps {
   reports: CitizenReport[];
@@ -49,9 +50,15 @@ export const VerifiedReports: React.FC<VerifiedReportsProps> = ({ reports, loadi
               )}
             </div>
             {report.photo_path && (
-              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                <Image size={14} className="text-slate-400" />
-              </div>
+              <a
+                href={getUploadUrl(report.photo_path)}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="View photo evidence"
+                className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors text-slate-500 hover:text-slate-700"
+              >
+                <Image size={14} />
+              </a>
             )}
           </div>
           <p className="text-sm text-slate-600 leading-relaxed mb-3 line-clamp-2">
