@@ -42,13 +42,20 @@ from seed_data import seed
 # App setup
 # ---------------------------------------------------------------------------
 
-BASE_DIR     = os.path.dirname(__file__)
-UPLOAD_DIR   = os.path.join(BASE_DIR, "uploads")
-FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+BASE_DIR   = os.path.dirname(__file__)
+UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app = Flask(__name__, static_folder=None)
-CORS(app)
+
+# CORS — allow specific origins in production via ALLOWED_ORIGINS env var
+# In development (empty / unset) all origins are allowed for convenience.
+_raw_origins = os.environ.get("ALLOWED_ORIGINS", "")
+CORS(
+    app,
+    origins=[o.strip() for o in _raw_origins.split(",") if o.strip()] or "*",
+    supports_credentials=True,
+)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
@@ -63,9 +70,10 @@ def _row_to_dict(row) -> dict:
 
 # ---------------------------------------------------------------------------
 # Frontend Page Routes (Multi-Page SPA support)
+# Build output lives at frontend-react/dist after `npm run build`
 # ---------------------------------------------------------------------------
 
-DIST_DIR = os.path.join(FRONTEND_DIR, "dist")
+DIST_DIR = os.path.join(BASE_DIR, "frontend-react", "dist")
 
 @app.route("/")
 @app.route("/dashboard")
@@ -78,34 +86,23 @@ DIST_DIR = os.path.join(FRONTEND_DIR, "dist")
 @app.route("/login")
 @app.route("/admin")
 def serve_spa():
-    """Serve the primary HTML application shell."""
-    if os.path.exists(os.path.join(DIST_DIR, "index.html")):
+    """Serve the React SPA shell. Falls back gracefully if build not present."""
+    index_path = os.path.join(DIST_DIR, "index.html")
+    if os.path.exists(index_path):
         return send_from_directory(DIST_DIR, "index.html")
-    return send_from_directory(FRONTEND_DIR, "index.html")
+    return jsonify({"error": "Frontend not built. Run: cd frontend-react && npm run build"}), 503
 
 
 @app.route("/assets/<path:filename>")
 def serve_assets(filename):
     """Serve compiled Vite assets (JS, CSS, SVGs)."""
-    if os.path.exists(DIST_DIR):
-        return send_from_directory(os.path.join(DIST_DIR, "assets"), filename)
-    return send_from_directory(os.path.join(FRONTEND_DIR, "static"), filename)
+    return send_from_directory(os.path.join(DIST_DIR, "assets"), filename)
 
 
 @app.route("/favicon.svg")
 def serve_favicon():
-    """Serve favicon mark."""
-    if os.path.exists(os.path.join(DIST_DIR, "favicon.svg")):
-        return send_from_directory(DIST_DIR, "favicon.svg")
-    return send_from_directory(os.path.join(FRONTEND_DIR, "dist"), "favicon.svg")
-
-
-@app.route("/static/<path:filename>")
-def serve_static(filename):
-    """Serve static CSS, JS, and asset files without aggressive disk caching."""
-    resp = send_from_directory(os.path.join(FRONTEND_DIR, "static"), filename)
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    return resp
+    """Serve favicon."""
+    return send_from_directory(DIST_DIR, "favicon.svg")
 
 
 @app.route("/uploads/<path:filename>")
@@ -458,7 +455,14 @@ def get_analytics():
 
 
 # ---------------------------------------------------------------------------
-# Server Startup
+# DB + seed (run on every startup — idempotent)
+# ---------------------------------------------------------------------------
+
+init_db()
+seed()
+
+# ---------------------------------------------------------------------------
+# Server Startup (development only — production uses gunicorn)
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
@@ -466,11 +470,6 @@ if __name__ == "__main__":
     print("  🏔️  MALAI VIZHI — AI-Based Landslide Early Warning System")
     print("  Watching Over Every Mountain — North Eastern Region of India")
     print("=" * 68)
-    print()
-
-    init_db()
-    seed()
-
     print()
     print("  🌐  Web Application  →  http://127.0.0.1:5000")
     print()
@@ -485,4 +484,5 @@ if __name__ == "__main__":
     print()
     print("=" * 68)
 
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    app.run(debug=debug_mode, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

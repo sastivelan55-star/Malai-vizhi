@@ -9,7 +9,7 @@ import type {
   AnalyticsData,
 } from '../types';
 
-const BASE = '';
+const BASE = (import.meta.env.VITE_API_BASE as string | undefined) || '';
 
 async function request<T>(
   path: string,
@@ -69,7 +69,7 @@ export async function submitReport(formData: FormData): Promise<{
   submitted_at: string;
   message: string;
 }> {
-  const res = await fetch('/api/submit-report', {
+  const res = await fetch(`${BASE}/api/submit-report`, {
     method: 'POST',
     body: formData, // multipart/form-data — no Content-Type header; browser sets boundary
   });
