@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
       __API_BASE__: JSON.stringify(apiBase),
     },
     server: {
-      port: 5173,
+      port: 5174,
       proxy: {
         '/api': {
           target: 'http://127.0.0.1:5000',
