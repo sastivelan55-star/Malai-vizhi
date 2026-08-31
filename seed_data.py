@@ -13,6 +13,24 @@ from datetime import datetime, timezone
 from models import get_connection, init_db
 from risk_logic import calculate_risk, calculate_risk_score, fetch_rainfall
 
+
+def seed_users(conn):
+    """Seed initial default administrator and operator accounts if none exist."""
+    from werkzeug.security import generate_password_hash
+    cursor = conn.cursor()
+    user_count = cursor.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    if user_count == 0:
+        default_users = [
+            ("admin", "admin@malaivizhi.io", "System Administrator", generate_password_hash("MalaiVizhi@2025"), "Administrator"),
+            ("operator", "operator@malaivizhi.io", "Field Operations Lead", generate_password_hash("Operator#2025"), "Operator"),
+        ]
+        cursor.executemany("""
+            INSERT INTO users (user_id, email, name, password_hash, role)
+            VALUES (?, ?, ?, ?, ?)
+        """, default_users)
+        conn.commit()
+        print(f"[seed_data] 👤 Created {len(default_users)} default authorized accounts (admin, operator).")
+
 # ---------------------------------------------------------------------------
 # 12 North-East India locations with realistic coordinates & slope terrain
 # ---------------------------------------------------------------------------
@@ -48,6 +66,7 @@ def seed():
         for r in rows:
             score = calculate_risk_score(r["rainfall_mm"], r["soil_moisture"], r["slope_deg"])
             cursor.execute("UPDATE locations SET risk_score = ? WHERE id = ?", (score, r["id"]))
+        seed_users(conn)
         conn.commit()
         conn.close()
         return
@@ -94,6 +113,7 @@ def seed():
         ('NH-29 Kohima Bypass, Nagaland', 'Tension fissures and visible rock movements on upper embankment near milestone 42.', 25.68, 94.12, 'Tension Cracks', NULL, datetime('now', '-6 hours'))
     """)
 
+    seed_users(conn)
     conn.commit()
     conn.close()
     print("[seed_data] ✅ Seed complete.")

@@ -7,6 +7,8 @@ import type {
   CitizenReport,
   SimulationResponse,
   AnalyticsData,
+  AuthUser,
+  AuthResponse,
 } from '../types';
 
 // Configurable API base URL: respects VITE_API_BASE_URL or VITE_API_URL or VITE_API_BASE.
@@ -21,6 +23,45 @@ const rawBase = ((
 export const API_BASE = rawBase.replace(/\/+$/, '');
 const BASE = API_BASE;
 
+// ─── Local Auth Storage ────────────────────────────────────────────────────────
+const AUTH_TOKEN_KEY = 'mv_auth_token';
+const AUTH_USER_KEY = 'mv_auth_user';
+
+export function getStoredToken(): string | null {
+  try {
+    return localStorage.getItem(AUTH_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function getStoredUser(): AuthUser | null {
+  try {
+    const raw = localStorage.getItem(AUTH_USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredAuth(token: string, user: AuthUser): void {
+  try {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+  } catch {
+    // ignore
+  }
+}
+
+export function clearStoredAuth(): void {
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_USER_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 export function getUploadUrl(photoPath?: string): string {
   if (!photoPath) return '';
   if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) return photoPath;
@@ -32,13 +73,22 @@ async function request<T>(
   path: string,
   options?: RequestInit
 ): Promise<T> {
+  const token = getStoredToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string>),
+  };
+  if (token && !headers['Authorization']) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
     ...options,
+    headers,
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || `HTTP ${res.status}`);
+    throw new Error(err.error || err.message || `HTTP ${res.status}`);
   }
   return res.json();
 }
@@ -117,4 +167,56 @@ export async function getAnalytics(): Promise<AnalyticsData> {
 
 export async function getHealth(): Promise<{ status: string; version: string }> {
   return request<{ status: string; version: string }>('/api/health');
+}
+
+// ─── Authentication & Access Control ──────────────────────────────────────────
+
+export async function login(userId: string, password: string): Promise<AuthResponse> {
+  const res = await request<AuthResponse>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId, password }),
+  });
+  if (res.success && res.token && res.user) {
+    setStoredAuth(res.token, res.user);
+  }
+  return res;
+}
+
+export async function logout(): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await request<{ success: boolean; message: string }>('/api/auth/logout', {
+      method: 'POST',
+    });
+    clearStoredAuth();
+    return res;
+  } catch {
+    clearStoredAuth();
+    return { success: true, message: 'Logged out.' };
+  }
+}
+
+export async function getAuthMe(): Promise<{ authenticated: boolean; user: AuthUser }> {
+  return request<{ authenticated: boolean; user: AuthUser }>('/api/auth/me');
+}
+
+export async function forgotPassword(userId: string): Promise<AuthResponse> {
+  return request<AuthResponse>('/api/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId }),
+  });
+}
+
+export async function resetPassword(
+  userId: string,
+  resetCode: string,
+  newPassword: string
+): Promise<{ success: boolean; message?: string; error?: string }> {
+  return request<{ success: boolean; message?: string; error?: string }>('/api/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({
+      user_id: userId,
+      reset_code: resetCode,
+      new_password: newPassword,
+    }),
+  });
 }

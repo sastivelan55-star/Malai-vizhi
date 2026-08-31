@@ -1,11 +1,12 @@
-// src/components/Layout/Header.tsx
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { Menu, X, Bell, LayoutDashboard, AlertTriangle, FileText, BarChart2, HelpCircle, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Menu, X, Bell, LayoutDashboard, AlertTriangle, FileText, BarChart2, HelpCircle, ShieldCheck, LogOut, User } from 'lucide-react';
 import { Logo } from '../UI/Logo';
 import { StatusBadge } from '../UI/StatusBadge';
 import { InstallPWA } from '../UI/InstallPWA';
 import { useSystemStatus } from '../../hooks/useSystemStatus';
+import { getStoredToken, getStoredUser, logout } from '../../services/api';
+import type { AuthUser } from '../../types';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -16,8 +17,29 @@ const NAV_ITEMS = [
 ];
 
 export const Header: React.FC = () => {
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const { data, online } = useSystemStatus();
+
+  useEffect(() => {
+    const token = getStoredToken();
+    const user = getStoredUser();
+    if (token && user) {
+      setCurrentUser(user);
+    }
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setCurrentUser(null);
+      navigate('/admin');
+    } catch {
+      setCurrentUser(null);
+      navigate('/admin');
+    }
+  };
 
   const lastInf = data?.last_inference
     ? new Date(data.last_inference).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -75,14 +97,36 @@ export const Header: React.FC = () => {
           {/* PWA Install Button */}
           <InstallPWA variant="button" className="hidden md:flex" />
 
-          {/* Admin */}
-          <NavLink
-            to="/admin"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#14B8A6]/40 text-[#14B8A6] text-xs font-semibold tracking-wider hover:bg-[#14B8A6]/10 transition-colors"
-          >
-            <ShieldCheck size={13} />
-            ADMIN
-          </NavLink>
+          {/* User Status / Login / Logout */}
+          {currentUser ? (
+            <div className="hidden sm:flex items-center gap-2">
+              <NavLink
+                to="/admin"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 text-white text-xs font-semibold hover:bg-white/15 transition-colors border border-white/10"
+                title={`Logged in as ${currentUser.name} (${currentUser.role})`}
+              >
+                <User size={13} className="text-[#14B8A6]" />
+                <span className="max-w-[90px] truncate">{currentUser.user_id}</span>
+              </NavLink>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-500/30 text-red-300 hover:bg-red-500/20 text-xs font-semibold tracking-wider transition-colors"
+                title="Logout"
+              >
+                <LogOut size={12} />
+                LOGOUT
+              </button>
+            </div>
+          ) : (
+            <NavLink
+              to="/admin"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#14B8A6]/40 text-[#14B8A6] text-xs font-semibold tracking-wider hover:bg-[#14B8A6]/10 transition-colors"
+            >
+              <ShieldCheck size={13} />
+              LOGIN
+            </NavLink>
+          )}
 
           {/* Mobile toggle */}
           <button
@@ -117,14 +161,38 @@ export const Header: React.FC = () => {
                 {label}
               </NavLink>
             ))}
-            <NavLink
-              to="/admin"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-[#14B8A6] hover:bg-white/5 transition-all mt-1 border-t border-white/5 pt-3"
-            >
-              <ShieldCheck size={15} />
-              Admin Portal
-            </NavLink>
+
+            {currentUser ? (
+              <div className="flex flex-col gap-2 pt-2 mt-1 border-t border-white/5">
+                <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 text-xs text-white/80">
+                  <div className="flex items-center gap-2">
+                    <User size={14} className="text-[#14B8A6]" />
+                    <span className="font-semibold text-white">{currentUser.name}</span>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold text-[#14B8A6]">{currentUser.role}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-red-500/20 text-red-300 font-semibold text-xs tracking-wider uppercase hover:bg-red-500/30 transition-colors"
+                >
+                  <LogOut size={14} />
+                  LOGOUT
+                </button>
+              </div>
+            ) : (
+              <NavLink
+                to="/admin"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-[#14B8A6] hover:bg-white/5 transition-all mt-1 border-t border-white/5 pt-3"
+              >
+                <ShieldCheck size={15} />
+                Admin Portal / Login
+              </NavLink>
+            )}
           </div>
           <div className="mt-3 pt-3 border-t border-white/5 flex flex-col gap-2.5">
             <InstallPWA variant="banner" />

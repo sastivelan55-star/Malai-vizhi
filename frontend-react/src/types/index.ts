@@ -108,3 +108,19 @@ export interface ToastMessage {
   title: string;
   message?: string;
 }
+
+export interface AuthUser {
+  user_id: string;
+  name: string;
+  email?: string;
+  role: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  token?: string;
+  user?: AuthUser;
+  error?: string;
+  message?: string;
+  reset_code?: string;
+}

@@ -11,6 +11,7 @@ import { SimulationButton } from '../components/Risk/SimulationButton';
 import { ToastContainer, useToast } from '../components/UI/Toast';
 import { useRiskData, useLocation } from '../hooks/useRiskData';
 import { useSystemStatus } from '../hooks/useSystemStatus';
+import { notifyAlert } from '../services/notificationService';
 import type { SimulationResponse } from '../types';
 
 export const Dashboard: React.FC = () => {
@@ -30,6 +31,12 @@ export const Dashboard: React.FC = () => {
       'Simulation Complete',
       `${result.location_name}: Risk escalated to ${result.risk_level} (Score: ${result.risk_score})`
     );
+    notifyAlert({
+      id: `sim-${result.location_id}-${Date.now()}`,
+      title: `${result.risk_level} Risk Simulation: ${result.location_name}`,
+      message: `Rainfall surged to ${result.rainfall_mm.toFixed(1)} mm, soil moisture ${result.soil_moisture.toFixed(1)}%. Risk: ${result.risk_level}`,
+      severity: result.risk_level,
+    });
     await refetch();
   }, [addToast, refetch]);
 

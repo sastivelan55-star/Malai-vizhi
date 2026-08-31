@@ -1,17 +1,50 @@
-// src/pages/Alerts.tsx
-import React, { useState } from 'react';
-import { AlertTriangle, Activity, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { AlertTriangle, Activity, CheckCircle, Bell, BellRing, Volume2, Vibrate } from 'lucide-react';
 import { Layout } from '../components/Layout/Layout';
 import { AlertList } from '../components/Alerts/AlertList';
 import { AlertDetailModal } from '../components/Alerts/AlertDetailModal';
 import { ToastContainer, useToast } from '../components/UI/Toast';
 import { useAlerts } from '../hooks/useAlerts';
+import {
+  getNotificationPermission,
+  requestNotificationPermission,
+  triggerAlertVibration,
+  playAlertSound,
+  notifyAlert,
+} from '../services/notificationService';
 import type { AlertItem, AlertStatus } from '../types';
 
 export const Alerts: React.FC = () => {
   const { data: alerts, loading, acknowledge } = useAlerts();
   const [selected, setSelected] = useState<AlertItem | null>(null);
   const { toasts, addToast, dismissToast } = useToast();
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission>('default');
+
+  useEffect(() => {
+    setNotifPerm(getNotificationPermission());
+  }, []);
+
+  const handleRequestPermission = async () => {
+    const res = await requestNotificationPermission();
+    setNotifPerm(res);
+    if (res === 'granted') {
+      addToast('success', 'Notifications Enabled', 'You will receive mobile alert notifications for high-risk hazards.');
+      notifyAlert({
+        id: `perm-test-${Date.now()}`,
+        title: 'Notifications Active',
+        message: 'MALAI VIZHI Early Warning alerts will now alert you with sound and vibration.',
+        severity: 'LOW',
+      });
+    } else {
+      addToast('warning', 'Permission Denied', 'Notifications are blocked. You can enable them in device settings.');
+    }
+  };
+
+  const handleTestAlert = () => {
+    triggerAlertVibration('HIGH');
+    playAlertSound('HIGH');
+    addToast('warning', 'Test Alert Triggered', 'Tested high-risk warning sound and two-pulse vibration.');
+  };
 
   const active = alerts.filter((a) => a.status === 'Sent').length;
   const acknowledged = alerts.filter((a) => a.status === 'Acknowledged').length;
@@ -30,11 +63,43 @@ export const Alerts: React.FC = () => {
     <Layout>
       <div className="space-y-6">
         {/* Page header */}
-        <div>
-          <h1 className="text-2xl font-bold text-[#102A43]">Early Warning Alerts</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Monitor and manage landslide risk alerts across the Northeast India sensor network.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-[#102A43]">Early Warning Alerts</h1>
+            <p className="text-sm text-slate-500 mt-1">
+              Monitor and manage landslide risk alerts across the Northeast India sensor network.
+            </p>
+          </div>
+
+          {/* Notification & Sound/Vibration Controls */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {notifPerm !== 'granted' ? (
+              <button
+                type="button"
+                onClick={handleRequestPermission}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#071A2B] hover:bg-[#0B3948] text-white text-xs font-semibold tracking-wide transition-all shadow-sm"
+              >
+                <Bell size={14} className="text-[#14B8A6]" />
+                Enable Device Alerts
+              </button>
+            ) : (
+              <span className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
+                <BellRing size={14} className="text-emerald-600" />
+                Alerts Active
+              </span>
+            )}
+
+            <button
+              type="button"
+              onClick={handleTestAlert}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
+              title="Test Alert Chime & Vibration"
+            >
+              <Volume2 size={14} className="text-slate-500" />
+              <Vibrate size={14} className="text-slate-500" />
+              Test Feedback
+            </button>
+          </div>
         </div>
 
         {/* Summary cards */}

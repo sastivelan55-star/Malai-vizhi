@@ -26,13 +26,16 @@ API Endpoints:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
 
+import hashlib
 import os
 import random
+import secrets
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from models import get_connection, init_db
 from risk_logic import calculate_risk, calculate_risk_score, generate_ai_assessment
@@ -543,6 +546,221 @@ def get_analytics():
         "model_accuracy": 94.2,
         "lead_time_hours": 4.8
     })
+
+
+# ---------------------------------------------------------------------------
+# Authentication & Access Control Endpoints
+# ---------------------------------------------------------------------------
+
+def _get_bearer_token():
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        return auth_header[7:].strip()
+    return None
+
+
+@app.route("/api/auth/login", methods=["POST"])
+def auth_login():
+    """
+    Authenticate an operator or administrator with User ID and Password.
+    Returns secure session token and sanitized user profile.
+    """
+    data = request.get_json(silent=True) or {}
+    user_id = str(data.get("user_id") or "").strip()
+    password = str(data.get("password") or "").strip()
+
+    if not user_id or not password:
+        return jsonify({"error": "User ID and password are required."}), 400
+
+    conn = get_connection()
+    user_row = conn.execute("""
+        SELECT * FROM users
+        WHERE LOWER(user_id) = LOWER(?) OR (email IS NOT NULL AND LOWER(email) = LOWER(?))
+    """, (user_id, user_id)).fetchone()
+
+    if not user_row or not check_password_hash(user_row["password_hash"], password):
+        conn.close()
+        return jsonify({"error": "Invalid User ID or password."}), 401
+
+    token = secrets.token_hex(32)
+    expires_at = (datetime.now(timezone.utc) + timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
+
+    conn.execute("""
+        INSERT INTO user_sessions (token, user_id, expires_at)
+        VALUES (?, ?, ?)
+    """, (token, user_row["user_id"], expires_at))
+    conn.commit()
+    conn.close()
+
+    print(f"[AUTH] ✅ User '{user_row['user_id']}' logged in successfully.")
+    return jsonify({
+        "success": True,
+        "token": token,
+        "user": {
+            "user_id": user_row["user_id"],
+            "name": user_row["name"],
+            "email": user_row["email"],
+            "role": user_row["role"]
+        }
+    }), 200
+
+
+@app.route("/api/auth/logout", methods=["POST"])
+def auth_logout():
+    """
+    Invalidate active session token.
+    """
+    token = _get_bearer_token()
+    if not token:
+        data = request.get_json(silent=True) or {}
+        token = data.get("token")
+
+    if token:
+        conn = get_connection()
+        conn.execute("DELETE FROM user_sessions WHERE token = ?", (token,))
+        conn.commit()
+        conn.close()
+        print("[AUTH] 🚪 Session invalidated.")
+
+    return jsonify({"success": True, "message": "Logged out successfully."}), 200
+
+
+@app.route("/api/auth/me", methods=["GET"])
+def auth_me():
+    """
+    Verify current session token and return authenticated user details.
+    """
+    token = _get_bearer_token()
+    if not token:
+        return jsonify({"error": "Authorization token required."}), 401
+
+    conn = get_connection()
+    session = conn.execute("""
+        SELECT s.*, u.name, u.email, u.role
+        FROM user_sessions s
+        JOIN users u ON u.user_id = s.user_id
+        WHERE s.token = ? AND datetime('now') <= datetime(s.expires_at)
+    """, (token,)).fetchone()
+    conn.close()
+
+    if not session:
+        return jsonify({"error": "Invalid or expired session."}), 401
+
+    return jsonify({
+        "authenticated": True,
+        "user": {
+            "user_id": session["user_id"],
+            "name": session["name"],
+            "email": session["email"],
+            "role": session["role"]
+        }
+    }), 200
+
+
+@app.route("/api/auth/forgot-password", methods=["POST"])
+def auth_forgot_password():
+    """
+    Request a 6-digit password reset code for an existing user account.
+    """
+    data = request.get_json(silent=True) or {}
+    user_id = str(data.get("user_id") or "").strip()
+
+    if not user_id:
+        return jsonify({"error": "User ID or Email is required."}), 400
+
+    conn = get_connection()
+    user_row = conn.execute("""
+        SELECT * FROM users
+        WHERE LOWER(user_id) = LOWER(?) OR (email IS NOT NULL AND LOWER(email) = LOWER(?))
+    """, (user_id, user_id)).fetchone()
+
+    if not user_row:
+        conn.close()
+        return jsonify({
+            "success": True,
+            "message": "If an authorized account matches that User ID, a 6-digit verification code has been dispatched."
+        }), 200
+
+    reset_code = f"{secrets.randbelow(900000) + 100000}"
+    code_hash = hashlib.sha256(reset_code.encode("utf-8")).hexdigest()
+    expires_at = (datetime.now(timezone.utc) + timedelta(minutes=15)).strftime("%Y-%m-%d %H:%M:%S")
+
+    # Invalidate previous unused codes for this user
+    conn.execute("UPDATE password_resets SET used = 1 WHERE user_id = ?", (user_row["user_id"],))
+
+    conn.execute("""
+        INSERT INTO password_resets (user_id, token_hash, expires_at, used)
+        VALUES (?, ?, ?, 0)
+    """, (user_row["user_id"], code_hash, expires_at))
+    conn.commit()
+    conn.close()
+
+    print(f"[AUTH] 🔑 Password reset code for '{user_row['user_id']}': {reset_code} (Valid for 15 mins)")
+
+    is_debug = app.debug or os.environ.get("FLASK_DEBUG", "").lower() == "true"
+    resp_data = {
+        "success": True,
+        "user_id": user_row["user_id"],
+        "message": f"A 6-digit verification code has been generated for User ID '{user_row['user_id']}' (valid for 15 minutes).",
+    }
+    if is_debug:
+        resp_data["reset_code"] = reset_code
+
+    return jsonify(resp_data), 200
+
+
+@app.route("/api/auth/reset-password", methods=["POST"])
+def auth_reset_password():
+    """
+    Validate 6-digit reset code and set a new password for the user.
+    """
+    data = request.get_json(silent=True) or {}
+    user_id = str(data.get("user_id") or "").strip()
+    reset_code = str(data.get("reset_code") or "").strip()
+    new_password = str(data.get("new_password") or "").strip()
+
+    if not user_id or not reset_code or not new_password:
+        return jsonify({"error": "User ID, verification code, and new password are all required."}), 400
+
+    if len(new_password) < 6:
+        return jsonify({"error": "New password must be at least 6 characters long."}), 400
+
+    code_hash = hashlib.sha256(reset_code.encode("utf-8")).hexdigest()
+
+    conn = get_connection()
+    user_row = conn.execute("""
+        SELECT * FROM users
+        WHERE LOWER(user_id) = LOWER(?) OR (email IS NOT NULL AND LOWER(email) = LOWER(?))
+    """, (user_id, user_id)).fetchone()
+
+    if not user_row:
+        conn.close()
+        return jsonify({"error": "Invalid verification code or User ID."}), 400
+
+    actual_user_id = user_row["user_id"]
+
+    reset_record = conn.execute("""
+        SELECT * FROM password_resets
+        WHERE user_id = ? AND token_hash = ? AND used = 0 AND datetime('now') <= datetime(expires_at)
+        ORDER BY id DESC LIMIT 1
+    """, (actual_user_id, code_hash)).fetchone()
+
+    if not reset_record:
+        conn.close()
+        return jsonify({"error": "Invalid or expired verification code. Please request a new one."}), 400
+
+    new_hash = generate_password_hash(new_password)
+    conn.execute("UPDATE users SET password_hash = ? WHERE user_id = ?", (new_hash, actual_user_id))
+    conn.execute("UPDATE password_resets SET used = 1 WHERE id = ?", (reset_record["id"],))
+    conn.execute("DELETE FROM user_sessions WHERE user_id = ?", (actual_user_id,))
+    conn.commit()
+    conn.close()
+
+    print(f"[AUTH] 🔒 Password successfully reset for user '{actual_user_id}'.")
+    return jsonify({
+        "success": True,
+        "message": "Password successfully updated! You can now log in with your new password."
+    }), 200
 
 
 # ---------------------------------------------------------------------------

@@ -83,6 +83,43 @@ def init_db():
     if "longitude" not in r_columns:
         cursor.execute("ALTER TABLE reports ADD COLUMN longitude REAL")
 
+    # ---------- users ----------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id       TEXT    UNIQUE NOT NULL,
+            email         TEXT,
+            name          TEXT    NOT NULL,
+            password_hash TEXT    NOT NULL,
+            role          TEXT    NOT NULL DEFAULT 'Operator',
+            created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+        )
+    """)
+
+    # ---------- user_sessions ----------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_sessions (
+            token         TEXT PRIMARY KEY,
+            user_id       TEXT NOT NULL,
+            created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+            expires_at    TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
+        )
+    """)
+
+    # ---------- password_resets ----------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS password_resets (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id       TEXT NOT NULL,
+            token_hash    TEXT NOT NULL,
+            created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+            expires_at    TEXT NOT NULL,
+            used          INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
+        )
+    """)
+
     conn.commit()
     conn.close()
     print("[models] ✅ Database tables initialised and migrated.")
