@@ -35,7 +35,7 @@ function createRiskMarker(level: string, score: number): L.DivIcon {
   return L.divIcon({
     className: '',
     html: `
-      <div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+      <div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
         ${level === 'HIGH' ? `
           <div style="position:absolute;width:36px;height:36px;border-radius:50%;background:${color}22;${pulseAnim}border:1.5px solid ${color}55;"></div>
         ` : ''}
@@ -69,6 +69,7 @@ export const StationMap: React.FC<StationMapProps> = memo(({ locations, selected
       zoom: MAP_ZOOM,
       zoomControl: true,
       attributionControl: true,
+      tapHold: false,
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -131,10 +132,9 @@ export const StationMap: React.FC<StationMapProps> = memo(({ locations, selected
   return (
     <div
       ref={containerRef}
-      className="w-full h-full rounded-xl overflow-hidden"
+      className="w-full h-full min-h-[300px] rounded-xl overflow-hidden shadow-inner"
       role="application"
       aria-label="Interactive Northeast India monitoring station map"
-      style={{ minHeight: '400px' }}
     />
   );
 });

@@ -1,5 +1,5 @@
 // src/pages/Dashboard.tsx
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Satellite, RefreshCw } from 'lucide-react';
 import { Layout } from '../components/Layout/Layout';
 import { StatusBadge } from '../components/UI/StatusBadge';
@@ -20,6 +20,16 @@ export const Dashboard: React.FC = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const { data: selectedLoc, loading: selLoading } = useLocation(selectedId);
   const { toasts, addToast, dismissToast } = useToast();
+
+  // Auto-select the highest risk station once loaded if nothing is selected yet
+  useEffect(() => {
+    if (locations.length > 0 && selectedId === null) {
+      const highest = [...locations].sort((a, b) => b.risk_score - a.risk_score)[0];
+      if (highest) {
+        setSelectedId(highest.id);
+      }
+    }
+  }, [locations, selectedId]);
 
   const handleSelectLocation = useCallback((id: number) => {
     setSelectedId(id);
@@ -53,23 +63,28 @@ export const Dashboard: React.FC = () => {
       <div className="flex flex-col min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] lg:overflow-hidden">
         {/* Dashboard Header */}
         <div className="bg-white border-b border-slate-100 px-4 sm:px-6 py-3 flex-shrink-0">
-          <div className="max-w-screen-xl mx-auto flex flex-wrap items-center justify-between gap-3">
+          <div className="max-w-screen-xl mx-auto flex items-center justify-between gap-3">
             <div>
-              <h1 className="text-base font-bold text-[#102A43] flex items-center gap-2">
-                <Satellite size={15} className="text-[#14B8A6]" />
-                Live Monitoring Dashboard
+              <h1 className="text-base sm:text-lg font-bold text-[#102A43] flex items-center gap-2">
+                <Satellite size={16} className="text-[#14B8A6] flex-shrink-0" />
+                <span>Live Monitoring Dashboard</span>
               </h1>
               <p className="text-xs text-slate-400 mt-0.5">Northeast India · 12 Station Network</p>
             </div>
-            <div className="flex items-center gap-3">
-              {!statusLoading && <StatusBadge online={online} lastUpdated={lastInf} />}
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              {!statusLoading && (
+                <div className="hidden sm:block">
+                  <StatusBadge online={online} lastUpdated={lastInf} />
+                </div>
+              )}
               <button
+                type="button"
                 onClick={refetch}
                 disabled={locLoading}
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-600 transition-colors"
                 aria-label="Refresh data"
               >
-                <RefreshCw size={14} className={locLoading ? 'animate-spin' : ''} />
+                <RefreshCw size={15} className={locLoading ? 'animate-spin' : ''} />
               </button>
             </div>
           </div>
@@ -77,9 +92,9 @@ export const Dashboard: React.FC = () => {
 
         {/* Error banner */}
         {locError && !online && (
-          <div className="flex-shrink-0 bg-[#DC2626]/10 border-b border-[#DC2626]/20 px-6 py-2">
+          <div className="flex-shrink-0 bg-[#DC2626]/10 border-b border-[#DC2626]/20 px-4 sm:px-6 py-2">
             <p className="text-xs text-[#DC2626] font-semibold text-center">
-              BACKEND OFFLINE — Unable to reach Flask server. Retrying…
+              BACKEND OFFLINE — Unable to reach server. Retrying…
             </p>
           </div>
         )}
@@ -87,40 +102,42 @@ export const Dashboard: React.FC = () => {
         {/* Main content area */}
         <div className="flex-1 lg:overflow-hidden flex flex-col lg:flex-row">
           {/* Left panel — overview + map */}
-          <div className="flex-1 flex flex-col p-4 sm:p-6 gap-4 min-w-0">
+          <div className="flex-1 flex flex-col p-3.5 sm:p-6 gap-3.5 sm:gap-4 min-w-0">
             {/* Risk overview */}
             <div className="flex-shrink-0">
               <RiskOverviewCards locations={locations} loading={locLoading} />
             </div>
 
             {/* Map — responsive height */}
-            <div className="h-[360px] sm:h-[420px] lg:h-auto lg:flex-1 relative min-h-[300px]">
+            <div className="h-[340px] sm:h-[420px] lg:h-auto lg:flex-1 relative min-h-[300px]">
               <StationMap
                 locations={locations}
                 selectedId={selectedId}
                 onSelectLocation={handleSelectLocation}
               />
               {/* Map legend */}
-              <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg border border-slate-100 px-3 py-2 flex items-center gap-3 text-xs shadow-sm z-[400]" aria-label="Map legend">
+              <div
+                className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm rounded-xl border border-slate-100 px-2.5 py-1.5 sm:px-3 sm:py-2 flex items-center gap-2.5 sm:gap-3 text-xs shadow-md z-[400]"
+                aria-label="Map legend"
+              >
                 {[
                   { color: '#DC2626', label: 'High' },
-                  { color: '#F59E0B', label: 'Moderate' },
+                  { color: '#F59E0B', label: 'Mod' },
                   { color: '#16A34A', label: 'Low' },
                 ].map(({ color, label }) => (
                   <div key={label} className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded-full border-2 border-white" style={{ backgroundColor: color }} />
-                    <span className="text-slate-500 font-medium">{label}</span>
+                    <span className="w-2.5 h-2.5 rounded-full border border-white" style={{ backgroundColor: color }} />
+                    <span className="text-slate-600 font-medium text-[11px] sm:text-xs">{label}</span>
                   </div>
                 ))}
-                <div className="text-slate-300 text-xs">·</div>
-                <span className="text-slate-400 font-medium hidden sm:inline">Click marker for details</span>
+                <span className="text-slate-400 font-medium hidden sm:inline">· Tap marker for details</span>
               </div>
             </div>
           </div>
 
           {/* Right panel — sidebar */}
           <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 border-t lg:border-t-0 lg:border-l border-slate-100 flex flex-col lg:overflow-y-auto bg-[#F5F7F8]">
-            <div className="p-4 flex flex-col gap-4">
+            <div className="p-3.5 sm:p-4 flex flex-col gap-4">
               {/* Location Intelligence */}
               {selectedId ? (
                 <LocationDrawer
@@ -133,8 +150,8 @@ export const Dashboard: React.FC = () => {
                   <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
                     <Satellite size={16} className="text-slate-400" />
                   </div>
-                  <p className="text-xs font-semibold text-slate-400">Location Intelligence</p>
-                  <p className="text-xs text-slate-300 mt-1">Select a station on the map to view detailed telemetry.</p>
+                  <p className="text-xs font-semibold text-slate-500">Location Intelligence</p>
+                  <p className="text-xs text-slate-400 mt-1">Select a station on the map to view detailed telemetry.</p>
                 </div>
               )}
 
@@ -154,7 +171,7 @@ export const Dashboard: React.FC = () => {
                 <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
                   <div className="px-4 py-3 border-b border-slate-50">
                     <h3 className="text-xs font-semibold tracking-widest uppercase text-slate-400">
-                      All Stations
+                      All Stations ({locations.length})
                     </h3>
                   </div>
                   <div className="max-h-60 overflow-y-auto">
@@ -163,9 +180,10 @@ export const Dashboard: React.FC = () => {
                       return (
                         <button
                           key={loc.id}
+                          type="button"
                           onClick={() => handleSelectLocation(loc.id)}
-                          className={`w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0
-                            ${selectedId === loc.id ? 'bg-slate-50' : ''}`}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 active:bg-slate-100 transition-colors border-b border-slate-50 last:border-0 min-h-[44px]
+                            ${selectedId === loc.id ? 'bg-teal-50/50 border-l-4 border-l-[#14B8A6]' : ''}`}
                           aria-label={`Select ${loc.name} monitoring station`}
                         >
                           <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: riskColor }} />

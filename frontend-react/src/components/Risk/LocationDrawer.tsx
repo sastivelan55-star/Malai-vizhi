@@ -20,12 +20,12 @@ function DataRow({ icon: Icon, label, value, unit = '' }: {
   unit?: string;
 }) {
   return (
-    <div className="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0">
-      <div className="flex items-center gap-2 text-slate-500">
-        <Icon size={13} />
-        <span className="text-xs font-medium">{label}</span>
+    <div className="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0 gap-2">
+      <div className="flex items-center gap-2 text-slate-500 min-w-0">
+        <Icon size={14} className="flex-shrink-0" />
+        <span className="text-xs font-medium truncate">{label}</span>
       </div>
-      <span className="text-sm font-semibold text-[#102A43]">
+      <span className="text-sm font-semibold text-[#102A43] flex-shrink-0 text-right">
         {value}{unit}
       </span>
     </div>
@@ -45,8 +45,8 @@ export const LocationDrawer: React.FC<LocationDrawerProps> = ({
       aria-label="Location intelligence panel"
     >
       {/* Header */}
-      <div className="bg-[#071A2B] px-5 py-4 flex items-start justify-between">
-        <div>
+      <div className="bg-[#071A2B] px-5 py-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
           {loading ? (
             <div className="animate-pulse">
               <div className="h-5 bg-white/20 rounded w-28 mb-2" />
@@ -54,20 +54,21 @@ export const LocationDrawer: React.FC<LocationDrawerProps> = ({
             </div>
           ) : location ? (
             <>
-              <h2 className="text-white font-bold text-base">{location.name}</h2>
+              <h2 className="text-white font-bold text-base truncate">{location.name}</h2>
               <div className="flex items-center gap-1.5 mt-1">
-                <MapPin size={11} className="text-[#14B8A6]" />
+                <MapPin size={12} className="text-[#14B8A6] flex-shrink-0" />
                 <span className="text-[#14B8A6] text-xs font-medium">{location.state}</span>
               </div>
             </>
           ) : null}
         </div>
         <button
+          type="button"
           onClick={onClose}
-          className="text-white/50 hover:text-white transition-colors p-1"
+          className="text-white/60 hover:text-white active:bg-white/10 transition-colors p-2 rounded-lg -mr-1 -mt-1 flex-shrink-0 min-w-[36px] min-h-[36px] flex items-center justify-center"
           aria-label="Close location panel"
         >
-          <X size={16} />
+          <X size={18} />
         </button>
       </div>
 
@@ -128,9 +129,9 @@ export const LocationDrawer: React.FC<LocationDrawerProps> = ({
 
           {/* AI Assessment */}
           {location.ai_assessment && (
-            <div className="mx-5 mb-5 p-4 bg-[#071A2B]/4 rounded-xl border border-[#14B8A6]/15">
+            <div className="mx-5 mb-4 p-4 bg-[#071A2B]/4 rounded-xl border border-[#14B8A6]/15">
               <div className="flex items-center gap-1.5 mb-2">
-                <BrainCircuit size={13} className="text-[#14B8A6]" />
+                <BrainCircuit size={14} className="text-[#14B8A6]" />
                 <span className="text-xs font-semibold text-[#0F766E] tracking-wider uppercase">
                   AI Assessment
                 </span>
@@ -141,9 +142,9 @@ export const LocationDrawer: React.FC<LocationDrawerProps> = ({
             </div>
           )}
 
-          {/* Coordinates */}
-          <div className="mx-5 mb-5 flex items-center gap-1 text-xs text-slate-400">
-            <ChevronRight size={11} />
+          {/* Coordinates footer */}
+          <div className="mx-5 mb-4 flex items-center gap-1 text-xs text-slate-400">
+            <ChevronRight size={12} />
             <span>
               {location.latitude.toFixed(4)}°N · {location.longitude.toFixed(4)}°E
             </span>

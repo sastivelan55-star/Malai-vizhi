@@ -11,16 +11,40 @@ import type {
   AuthResponse,
 } from '../types';
 
-// Configurable API base URL: respects VITE_API_BASE_URL or VITE_API_URL or VITE_API_BASE.
-// In native mobile app runtime (Capacitor), automatically defaults to deployed production backend URL.
-const isCapacitor = typeof (window as unknown as { Capacitor?: unknown }).Capacitor !== 'undefined';
-const rawBase = ((
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_API_BASE ||
-  (isCapacitor ? 'https://malai-vizhi.onrender.com' : '')
-) as string).trim();
-export const API_BASE = rawBase.replace(/\/+$/, '');
+// Configurable API base URL: respects VITE_API_BASE_URL / VITE_API_URL / VITE_API_BASE.
+// Intelligently adapts to runtime environment:
+// - In Capacitor (Android APK): connects to the live production backend URL
+// - In local browser (localhost / 127.0.0.1): uses relative paths '' to directly hit the local Flask backend
+// - In deployed full-stack (Flask serving React dist on Render): uses relative paths '' to hit same-origin API
+// - In separate static deployment (e.g. Vercel, Netlify, Render Static): uses configured production backend URL
+export function resolveApiBase(): string {
+  // 1. Native Capacitor mobile environment
+  const isCapacitor = typeof window !== 'undefined' && typeof (window as unknown as { Capacitor?: unknown }).Capacitor !== 'undefined';
+  if (isCapacitor) {
+    const envUrl = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE || '').trim();
+    return (envUrl || 'https://malai-vizhi.onrender.com').replace(/\/+$/, '');
+  }
+
+  // 2. Browser runtime: if served from same origin (localhost, 127.0.0.1, or malai-vizhi.onrender.com),
+  // use relative paths '' to guarantee 100% reliable zero-CORS communication.
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '[::1]' ||
+      hostname === 'malai-vizhi.onrender.com'
+    ) {
+      return '';
+    }
+  }
+
+  // 3. Separate static deployment or fallback
+  const raw = ((import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE) as string | undefined)?.trim();
+  return (raw || 'https://malai-vizhi.onrender.com').replace(/\/+$/, '');
+}
+
+export const API_BASE = resolveApiBase();
 const BASE = API_BASE;
 
 // ─── Local Auth Storage ────────────────────────────────────────────────────────

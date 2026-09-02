@@ -74,7 +74,7 @@ export const Header: React.FC = () => {
         </nav>
 
         {/* Right side */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* System status - desktop */}
           <div className="hidden sm:block">
             <StatusBadge online={online} lastUpdated={lastInf} />
@@ -84,10 +84,10 @@ export const Header: React.FC = () => {
           {data && data.active_alerts_count > 0 && (
             <NavLink
               to="/alerts"
-              className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-[#DC2626]/20 text-[#DC2626] hover:bg-[#DC2626]/30 transition-colors"
+              className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-[#DC2626]/20 text-[#DC2626] hover:bg-[#DC2626]/30 active:scale-95 transition-all"
               aria-label={`${data.active_alerts_count} active alerts`}
             >
-              <Bell size={15} />
+              <Bell size={16} />
               <span className="absolute -top-1 -right-1 min-w-4 h-4 flex items-center justify-center bg-[#DC2626] text-white text-[10px] font-bold rounded-full px-1">
                 {data.active_alerts_count}
               </span>
@@ -97,7 +97,7 @@ export const Header: React.FC = () => {
           {/* PWA Install Button */}
           <InstallPWA variant="button" className="hidden md:flex" />
 
-          {/* User Status / Login / Logout */}
+          {/* User Status / Login / Logout (Desktop) */}
           {currentUser ? (
             <div className="hidden sm:flex items-center gap-2">
               <NavLink
@@ -128,45 +128,50 @@ export const Header: React.FC = () => {
             </NavLink>
           )}
 
-          {/* Mobile toggle */}
+          {/* Mobile toggle — 44px min touch target */}
           <button
-            className="lg:hidden w-8 h-8 flex items-center justify-center text-white/70 hover:text-white"
+            type="button"
+            className="lg:hidden w-11 h-11 flex items-center justify-center rounded-xl text-white/70 hover:text-white hover:bg-white/5 active:bg-white/10 transition-colors"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileOpen}
           >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile nav */}
+      {/* Mobile nav — scrollable overlay */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-white/5 bg-[#0B2D42] px-4 py-3" role="navigation" aria-label="Mobile navigation">
-          <div className="flex flex-col gap-1">
+        <div
+          className="lg:hidden border-t border-white/5 bg-[#0B2D42] px-4 py-3 max-h-[calc(100vh-4rem)] overflow-y-auto shadow-2xl"
+          role="navigation"
+          aria-label="Mobile navigation"
+        >
+          <div className="flex flex-col gap-1.5">
             {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all
+                  `flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all min-h-[44px]
                   ${isActive
-                    ? 'bg-white/10 text-white'
-                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                    ? 'bg-white/10 text-white font-semibold'
+                    : 'text-white/70 hover:text-white hover:bg-white/5 active:bg-white/10'
                   }`
                 }
               >
-                <Icon size={15} />
+                <Icon size={18} />
                 {label}
               </NavLink>
             ))}
 
             {currentUser ? (
-              <div className="flex flex-col gap-2 pt-2 mt-1 border-t border-white/5">
-                <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 text-xs text-white/80">
+              <div className="flex flex-col gap-2 pt-2 mt-1 border-t border-white/10">
+                <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-xs text-white/80">
                   <div className="flex items-center gap-2">
-                    <User size={14} className="text-[#14B8A6]" />
+                    <User size={15} className="text-[#14B8A6]" />
                     <span className="font-semibold text-white">{currentUser.name}</span>
                   </div>
                   <span className="text-[10px] uppercase font-bold text-[#14B8A6]">{currentUser.role}</span>
@@ -177,9 +182,9 @@ export const Header: React.FC = () => {
                     setMobileOpen(false);
                     handleLogout();
                   }}
-                  className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-red-500/20 text-red-300 font-semibold text-xs tracking-wider uppercase hover:bg-red-500/30 transition-colors"
+                  className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-red-500/20 text-red-300 font-semibold text-xs tracking-wider uppercase hover:bg-red-500/30 active:bg-red-500/40 transition-colors min-h-[44px]"
                 >
-                  <LogOut size={14} />
+                  <LogOut size={15} />
                   LOGOUT
                 </button>
               </div>
@@ -187,16 +192,18 @@ export const Header: React.FC = () => {
               <NavLink
                 to="/admin"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-[#14B8A6] hover:bg-white/5 transition-all mt-1 border-t border-white/5 pt-3"
+                className="flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-semibold text-[#14B8A6] hover:bg-white/5 active:bg-white/10 transition-all mt-1 border-t border-white/10 pt-3 min-h-[44px]"
               >
-                <ShieldCheck size={15} />
+                <ShieldCheck size={18} />
                 Admin Portal / Login
               </NavLink>
             )}
           </div>
-          <div className="mt-3 pt-3 border-t border-white/5 flex flex-col gap-2.5">
+          <div className="mt-3 pt-3 border-t border-white/10 flex flex-col gap-3">
             <InstallPWA variant="banner" />
-            <StatusBadge online={online} lastUpdated={lastInf} />
+            <div className="flex justify-start">
+              <StatusBadge online={online} lastUpdated={lastInf} />
+            </div>
           </div>
         </div>
       )}

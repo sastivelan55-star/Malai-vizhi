@@ -210,9 +210,9 @@ export const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7F8] flex flex-col justify-between">
+    <div className="min-h-screen bg-[#F5F7F8] flex flex-col justify-between overflow-y-auto">
       {/* Header Bar */}
-      <header className="bg-[#071A2B] px-6 py-4 flex items-center justify-between border-b border-white/5">
+      <header className="bg-[#071A2B] px-4 sm:px-6 py-4 flex items-center justify-between border-b border-white/5 flex-shrink-0">
         <Logo size="sm" variant="light" />
         <span className="text-xs text-white/50 font-medium tracking-wide">
           Official Access Gateway
@@ -220,8 +220,8 @@ export const AdminLogin: React.FC = () => {
       </header>
 
       {/* Main Login Card */}
-      <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
-        <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200/80 shadow-xl p-6 sm:p-8 space-y-6">
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-6 py-8">
+        <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200/80 shadow-xl p-5 sm:p-8 space-y-6">
           
           {/* Brand & Badge Header */}
           <div className="text-center space-y-2">
@@ -284,7 +284,7 @@ export const AdminLogin: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/dashboard')}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#071A2B] hover:bg-[#0B3948] text-white text-xs font-bold tracking-widest uppercase transition-all shadow-md"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#071A2B] hover:bg-[#0B3948] active:bg-[#040f1a] text-white text-xs font-bold tracking-widest uppercase transition-all shadow-md min-h-[44px]"
                 >
                   DASHBOARD
                   <ArrowRight size={14} />
@@ -293,7 +293,7 @@ export const AdminLogin: React.FC = () => {
                   type="button"
                   onClick={handleLogout}
                   disabled={loading}
-                  className="flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold tracking-wider uppercase transition-all disabled:opacity-50"
+                  className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 active:bg-red-100 text-xs font-bold tracking-wider uppercase transition-all disabled:opacity-50 min-h-[44px]"
                 >
                   {loading ? <Loader2 size={14} className="animate-spin" /> : <LogOut size={14} />}
                   LOGOUT
@@ -311,8 +311,8 @@ export const AdminLogin: React.FC = () => {
                   User ID
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <User size={15} />
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <User size={16} />
                   </div>
                   <input
                     id="user-id-input"
@@ -323,7 +323,7 @@ export const AdminLogin: React.FC = () => {
                     disabled={loading}
                     placeholder="Enter your User ID (e.g. admin)"
                     autoComplete="username"
-                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] transition-colors disabled:bg-slate-50"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-sm text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] transition-colors disabled:bg-slate-50 min-h-[44px]"
                   />
                 </div>
               </div>
@@ -343,14 +343,14 @@ export const AdminLogin: React.FC = () => {
                       setSuccessMessage(null);
                       setMode('forgot_request');
                     }}
-                    className="text-[11px] font-semibold text-[#0F766E] hover:text-[#14B8A6] hover:underline focus:outline-none"
+                    className="text-xs font-semibold text-[#0F766E] hover:text-[#14B8A6] active:text-[#071A2B] hover:underline focus:outline-none py-1 px-1 -mr-1"
                   >
                     Forgot Password?
                   </button>
                 </div>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <Lock size={15} />
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <Lock size={16} />
                   </div>
                   <input
                     id="password-input"
@@ -361,16 +361,16 @@ export const AdminLogin: React.FC = () => {
                     disabled={loading}
                     placeholder="Enter password"
                     autoComplete="current-password"
-                    className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] transition-colors disabled:bg-slate-50"
+                    className="w-full pl-10 pr-12 py-3 rounded-xl border border-slate-200 text-sm text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] transition-colors disabled:bg-slate-50 min-h-[44px]"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                    className="absolute inset-y-0 right-0 w-11 flex items-center justify-center text-slate-400 hover:text-slate-600 active:bg-slate-100 rounded-r-xl"
                     tabIndex={-1}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
@@ -379,17 +379,17 @@ export const AdminLogin: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#071A2B] hover:bg-[#0B3948] text-white text-xs font-bold tracking-widest uppercase transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#071A2B] hover:bg-[#0B3948] active:bg-[#040f1a] text-white text-xs font-bold tracking-widest uppercase transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
               >
                 {loading ? (
                   <>
-                    <Loader2 size={14} className="animate-spin" />
+                    <Loader2 size={15} className="animate-spin" />
                     AUTHENTICATING...
                   </>
                 ) : (
                   <>
                     LOGIN
-                    <ArrowRight size={14} />
+                    <ArrowRight size={15} />
                   </>
                 )}
               </button>
@@ -397,7 +397,7 @@ export const AdminLogin: React.FC = () => {
           ) : mode === 'forgot_request' ? (
             /* ────────────────── STATE 3: FORGOT PASSWORD REQUEST ────────────────── */
             <form onSubmit={handleForgotRequest} className="space-y-4">
-              <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-600 leading-relaxed border border-slate-200">
+              <div className="bg-slate-50 rounded-xl p-3.5 text-xs text-slate-600 leading-relaxed border border-slate-200">
                 Enter your authorized <strong>User ID</strong> or registered email address. A 6-digit verification code will be generated to reset your credentials.
               </div>
 
@@ -409,8 +409,8 @@ export const AdminLogin: React.FC = () => {
                   User ID / Email
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <User size={15} />
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <User size={16} />
                   </div>
                   <input
                     id="forgot-user-id"
@@ -420,7 +420,7 @@ export const AdminLogin: React.FC = () => {
                     required
                     disabled={loading}
                     placeholder="Enter your User ID"
-                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] transition-colors"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-sm text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] transition-colors min-h-[44px]"
                   />
                 </div>
               </div>
@@ -428,16 +428,16 @@ export const AdminLogin: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#071A2B] hover:bg-[#0B3948] text-white text-xs font-bold tracking-widest uppercase transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#071A2B] hover:bg-[#0B3948] active:bg-[#040f1a] text-white text-xs font-bold tracking-widest uppercase transition-all shadow-md hover:shadow-lg disabled:opacity-50 min-h-[48px]"
               >
                 {loading ? (
                   <>
-                    <Loader2 size={14} className="animate-spin" />
+                    <Loader2 size={15} className="animate-spin" />
                     GENERATING CODE...
                   </>
                 ) : (
                   <>
-                    <KeyRound size={14} />
+                    <KeyRound size={15} />
                     SEND RESET CODE
                   </>
                 )}
@@ -450,26 +450,26 @@ export const AdminLogin: React.FC = () => {
                   setSuccessMessage(null);
                   setMode('login');
                 }}
-                className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-slate-500 hover:text-slate-800 active:bg-slate-100 rounded-xl transition-colors min-h-[44px]"
               >
-                <ArrowLeft size={13} />
+                <ArrowLeft size={14} />
                 Back to Login
               </button>
             </form>
           ) : (
             /* ────────────────── STATE 4: FORGOT PASSWORD RESET SUBMISSION ──────── */
             <form onSubmit={handleResetSubmit} className="space-y-4">
-              <div className="bg-teal-50 border border-teal-200 text-[#0F766E] rounded-xl p-3 text-xs leading-relaxed">
+              <div className="bg-teal-50 border border-teal-200 text-[#0F766E] rounded-xl p-3.5 text-xs leading-relaxed">
                 Verification code generated for <strong>{userId}</strong>. Enter the code and choose a new password.
               </div>
 
               {devResetCode && (
-                <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-2.5 text-xs flex items-center justify-between">
-                  <span>Development Verification Code: <strong>{devResetCode}</strong></span>
+                <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-3 text-xs flex items-center justify-between flex-wrap gap-2">
+                  <span>Code: <strong>{devResetCode}</strong></span>
                   <button
                     type="button"
                     onClick={() => setResetCode(devResetCode)}
-                    className="underline text-amber-800 hover:text-amber-950 font-bold ml-2"
+                    className="px-2.5 py-1 rounded bg-amber-200 text-amber-900 font-bold hover:bg-amber-300 active:bg-amber-400 transition-colors text-xs"
                   >
                     Auto-Fill
                   </button>
@@ -492,7 +492,7 @@ export const AdminLogin: React.FC = () => {
                   disabled={loading}
                   maxLength={10}
                   placeholder="Enter 6-digit code"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono tracking-wider text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6]"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-mono tracking-wider text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] min-h-[44px]"
                 />
               </div>
 
@@ -512,15 +512,15 @@ export const AdminLogin: React.FC = () => {
                     required
                     disabled={loading}
                     placeholder="At least 6 characters"
-                    className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6]"
+                    className="w-full pl-4 pr-12 py-3 rounded-xl border border-slate-200 text-sm text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] min-h-[44px]"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                    className="absolute inset-y-0 right-0 w-11 flex items-center justify-center text-slate-400 hover:text-slate-600 active:bg-slate-100 rounded-r-xl"
                     tabIndex={-1}
                   >
-                    {showNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
@@ -540,23 +540,23 @@ export const AdminLogin: React.FC = () => {
                   required
                   disabled={loading}
                   placeholder="Re-enter new password"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6]"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] min-h-[44px]"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#071A2B] hover:bg-[#0B3948] text-white text-xs font-bold tracking-widest uppercase transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#071A2B] hover:bg-[#0B3948] active:bg-[#040f1a] text-white text-xs font-bold tracking-widest uppercase transition-all shadow-md hover:shadow-lg disabled:opacity-50 min-h-[48px]"
               >
                 {loading ? (
                   <>
-                    <Loader2 size={14} className="animate-spin" />
+                    <Loader2 size={15} className="animate-spin" />
                     UPDATING PASSWORD...
                   </>
                 ) : (
                   <>
-                    <RefreshCw size={14} />
+                    <RefreshCw size={15} />
                     RESET PASSWORD
                   </>
                 )}
@@ -569,9 +569,9 @@ export const AdminLogin: React.FC = () => {
                   setSuccessMessage(null);
                   setMode('login');
                 }}
-                className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-slate-500 hover:text-slate-800 active:bg-slate-100 rounded-xl transition-colors min-h-[44px]"
               >
-                <ArrowLeft size={13} />
+                <ArrowLeft size={14} />
                 Cancel and Return to Login
               </button>
             </form>
@@ -588,7 +588,7 @@ export const AdminLogin: React.FC = () => {
       </main>
 
       {/* Bottom Info */}
-      <footer className="text-center py-4 text-xs text-slate-400">
+      <footer className="text-center py-4 text-xs text-slate-400 flex-shrink-0">
         MALAI VIZHI Landslide Early Warning System · North Eastern Region, India
       </footer>
     </div>

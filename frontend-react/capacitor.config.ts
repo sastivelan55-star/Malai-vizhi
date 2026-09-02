@@ -16,6 +16,12 @@ const config: CapacitorConfig = {
       keystoreAlias: undefined,
     },
   },
+  plugins: {
+    LocalNotifications: {
+      smallIcon: 'ic_launcher',
+      iconColor: '#14B8A6',
+    },
+  },
 };
 
 export default config;

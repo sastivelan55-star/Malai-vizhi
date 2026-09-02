@@ -51,11 +51,11 @@ export const RiskOverviewCards: React.FC<RiskOverviewCardsProps> = ({ locations,
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-slate-100 p-5 animate-pulse">
-            <div className="h-3 bg-slate-200 rounded w-20 mb-4" />
-            <div className="h-8 bg-slate-200 rounded w-12" />
+          <div key={i} className="bg-white rounded-xl border border-slate-100 p-3.5 sm:p-5 animate-pulse">
+            <div className="h-3 bg-slate-200 rounded w-16 sm:w-20 mb-3 sm:mb-4" />
+            <div className="h-7 sm:h-8 bg-slate-200 rounded w-10 sm:w-12" />
           </div>
         ))}
       </div>
@@ -63,23 +63,23 @@ export const RiskOverviewCards: React.FC<RiskOverviewCardsProps> = ({ locations,
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" role="region" aria-label="Risk overview statistics">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4" role="region" aria-label="Risk overview statistics">
       {cards.map(({ label, value, icon: Icon, color, bg, border }) => (
         <div
           key={label}
-          className={`rounded-xl border p-5 ${bg} ${border} flex flex-col gap-3`}
+          className={`rounded-xl border p-3.5 sm:p-5 ${bg} ${border} flex flex-col justify-between gap-2 sm:gap-3`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold tracking-widest uppercase text-slate-500">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[11px] sm:text-xs font-semibold tracking-wider sm:tracking-widest uppercase text-slate-500 truncate">
               {label}
             </span>
-            <Icon size={16} style={{ color }} aria-hidden="true" />
+            <Icon size={15} style={{ color }} aria-hidden="true" className="flex-shrink-0" />
           </div>
-          <div>
-            <span className="text-4xl font-bold tabular-nums" style={{ color }}>
+          <div className="flex items-baseline flex-wrap gap-1">
+            <span className="text-2xl sm:text-4xl font-bold tabular-nums" style={{ color }}>
               {value}
             </span>
-            <span className="text-sm text-slate-400 ml-1.5 font-medium">stations</span>
+            <span className="text-xs sm:text-sm text-slate-400 font-medium">stations</span>
           </div>
         </div>
       ))}

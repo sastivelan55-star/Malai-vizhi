@@ -44,25 +44,33 @@ export const Modal: React.FC<ModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
-      onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
-      <div className="absolute inset-0 bg-[#071A2B]/60 backdrop-blur-sm" />
-      <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizeClass} max-h-[90vh] flex flex-col`}>
+      {/* Backdrop — tapping closes modal */}
+      <div
+        className="absolute inset-0 bg-[#071A2B]/60 backdrop-blur-sm cursor-pointer"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Modal Dialog Card */}
+      <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizeClass} max-h-[90vh] flex flex-col z-10`}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-100">
           <h2 id="modal-title" className="text-base font-semibold text-[#102A43]">
             {title}
           </h2>
           <button
+            type="button"
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            className="w-10 h-10 -mr-2 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-colors"
             aria-label="Close modal"
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
+
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5">
           {children}
         </div>
       </div>

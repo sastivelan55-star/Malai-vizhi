@@ -75,7 +75,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSuccess, onError }) =>
 
   if (submitted) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-12 text-center">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 sm:p-12 text-center">
         <div className="w-16 h-16 rounded-full bg-green-50 border-2 border-[#16A34A]/30 flex items-center justify-center mx-auto mb-4">
           <CheckCircle size={28} className="text-[#16A34A]" />
         </div>
@@ -84,6 +84,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSuccess, onError }) =>
           Thank you for helping identify potential hazards. Your report has been securely received and queued for verification.
         </p>
         <button
+          type="button"
           onClick={() => {
             setSubmitted(false);
             setLocation('');
@@ -91,7 +92,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSuccess, onError }) =>
             setCoords(null);
             removePhoto();
           }}
-          className="mt-6 px-5 py-2.5 rounded-lg bg-[#071A2B] text-white text-sm font-semibold hover:bg-[#0B3948] transition-colors"
+          className="mt-6 px-6 py-3 rounded-xl bg-[#071A2B] text-white text-sm font-semibold hover:bg-[#0B3948] active:bg-[#040f1a] transition-colors min-h-[44px]"
         >
           Submit Another Report
         </button>
@@ -100,49 +101,48 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSuccess, onError }) =>
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6" noValidate>
-      {/* Photo upload */}
+    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-6 space-y-5 sm:space-y-6" noValidate>
+      {/* Photo upload with direct file label trigger */}
       <div>
         <label className="block text-sm font-semibold text-[#102A43] mb-2">
           Photo Evidence <span className="text-slate-400 font-normal">(optional)</span>
         </label>
         {photoPreview ? (
-          <div className="relative rounded-xl overflow-hidden border border-slate-200 h-44">
+          <div className="relative rounded-xl overflow-hidden border border-slate-200 h-48 bg-slate-50">
             <img src={photoPreview} alt="Uploaded preview" className="w-full h-full object-cover" />
             <button
               type="button"
               onClick={removePhoto}
-              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center text-slate-600 hover:text-red-500 shadow-sm"
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center text-slate-600 hover:text-red-500 active:bg-slate-100"
               aria-label="Remove photo"
             >
-              <X size={14} />
+              <X size={16} />
             </button>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="w-full border-2 border-dashed border-slate-200 hover:border-[#14B8A6] rounded-xl p-8 flex flex-col items-center gap-2 transition-colors group"
-            aria-label="Upload photo"
+          <label
+            htmlFor="photo-file-input"
+            className="w-full border-2 border-dashed border-slate-200 hover:border-[#14B8A6] active:border-[#0F766E] rounded-xl p-6 flex flex-col items-center gap-2 cursor-pointer transition-colors group bg-slate-50/50"
           >
-            <div className="w-10 h-10 rounded-lg bg-slate-50 group-hover:bg-teal-50 flex items-center justify-center transition-colors">
-              <ImageIcon size={20} className="text-slate-300 group-hover:text-[#14B8A6] transition-colors" />
+            <div className="w-10 h-10 rounded-xl bg-white group-hover:bg-teal-50 shadow-sm flex items-center justify-center transition-colors">
+              <ImageIcon size={20} className="text-slate-400 group-hover:text-[#14B8A6] transition-colors" />
             </div>
-            <span className="text-sm text-slate-400 group-hover:text-[#0F766E] font-medium transition-colors">
-              <Upload size={13} className="inline mr-1" />
-              Upload a photo
+            <span className="text-sm text-slate-500 group-hover:text-[#0F766E] font-medium transition-colors text-center">
+              <Upload size={14} className="inline mr-1.5" />
+              Tap to choose a photo
             </span>
-            <span className="text-xs text-slate-300">PNG, JPG, JPEG, WebP</span>
-          </button>
+            <span className="text-xs text-slate-400">PNG, JPG, JPEG, WebP</span>
+            <input
+              ref={fileRef}
+              id="photo-file-input"
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              className="sr-only"
+              aria-label="Photo file input"
+            />
+          </label>
         )}
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
-          onChange={handlePhotoChange}
-          className="hidden"
-          aria-label="Photo file input"
-        />
       </div>
 
       {/* Location map */}
@@ -153,13 +153,13 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSuccess, onError }) =>
         <ReportPickerMap value={coords} onChange={setCoords} />
         {coords && (
           <div className="mt-2 flex items-center gap-2 text-xs text-[#0F766E] font-medium bg-teal-50 px-3 py-2 rounded-lg border border-[#14B8A6]/20">
-            <MapPin size={12} />
+            <MapPin size={13} />
             {coords.lat}°N, {coords.lng}°E
           </div>
         )}
       </div>
 
-      {/* Location name */}
+      {/* Location description */}
       <div>
         <label htmlFor="report-location" className="block text-sm font-semibold text-[#102A43] mb-1.5">
           Location Description <span className="text-[#DC2626]">*</span>
@@ -171,8 +171,8 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSuccess, onError }) =>
           onChange={(e) => setLocation(e.target.value)}
           placeholder="e.g. Near Mawphlang Road, Meghalaya"
           required
-          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-[#102A43] placeholder-slate-300
-            focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] transition-colors"
+          className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm text-[#102A43] placeholder-slate-400
+            focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] transition-colors min-h-[44px]"
         />
       </div>
 
@@ -185,8 +185,8 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSuccess, onError }) =>
           id="report-category"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-[#102A43]
-            focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] transition-colors bg-white"
+          className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm text-[#102A43]
+            focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] transition-colors bg-white min-h-[44px]"
         >
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
@@ -204,14 +204,14 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSuccess, onError }) =>
           rows={4}
           required
           placeholder="Describe what you observed — soil movement, cracks, water flow, road damage, etc."
-          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-[#102A43] placeholder-slate-300
-            focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] transition-colors resize-y"
+          className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm text-[#102A43] placeholder-slate-400
+            focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6] transition-colors resize-y min-h-[96px]"
         />
       </div>
 
       {/* Security indicator */}
-      <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-50 rounded-lg px-3 py-2">
-        <Lock size={12} className="text-[#14B8A6]" />
+      <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 rounded-xl p-3 border border-slate-100">
+        <Lock size={14} className="text-[#14B8A6] flex-shrink-0" />
         <span><strong className="text-[#0F766E]">Secure Submission</strong> — Your report is encrypted and sent directly to our verification team.</span>
       </div>
 
@@ -219,8 +219,8 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSuccess, onError }) =>
       <button
         type="submit"
         disabled={submitting}
-        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl
-          bg-[#071A2B] hover:bg-[#0B3948] text-white font-semibold text-sm
+        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl
+          bg-[#071A2B] hover:bg-[#0B3948] active:bg-[#040f1a] text-white font-semibold text-sm min-h-[48px]
           transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label="Submit hazard report"
       >

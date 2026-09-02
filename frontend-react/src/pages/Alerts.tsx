@@ -1,3 +1,4 @@
+// src/pages/Alerts.tsx
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Activity, CheckCircle, Bell, BellRing, Volume2, Vibrate } from 'lucide-react';
 import { Layout } from '../components/Layout/Layout';
@@ -7,6 +8,7 @@ import { ToastContainer, useToast } from '../components/UI/Toast';
 import { useAlerts } from '../hooks/useAlerts';
 import {
   getNotificationPermission,
+  checkNotificationPermission,
   requestNotificationPermission,
   triggerAlertVibration,
   playAlertSound,
@@ -18,10 +20,10 @@ export const Alerts: React.FC = () => {
   const { data: alerts, loading, acknowledge } = useAlerts();
   const [selected, setSelected] = useState<AlertItem | null>(null);
   const { toasts, addToast, dismissToast } = useToast();
-  const [notifPerm, setNotifPerm] = useState<NotificationPermission>('default');
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission>(getNotificationPermission());
 
   useEffect(() => {
-    setNotifPerm(getNotificationPermission());
+    checkNotificationPermission().then(setNotifPerm).catch(() => {});
   }, []);
 
   const handleRequestPermission = async () => {
@@ -32,7 +34,7 @@ export const Alerts: React.FC = () => {
       notifyAlert({
         id: `perm-test-${Date.now()}`,
         title: 'Notifications Active',
-        message: 'MALAI VIZHI Early Warning alerts will now alert you with sound and vibration.',
+        message: 'MALAI VIZHI Early Warning alerts will now notify you with sound and vibration.',
         severity: 'LOW',
       });
     } else {
@@ -43,7 +45,13 @@ export const Alerts: React.FC = () => {
   const handleTestAlert = () => {
     triggerAlertVibration('HIGH');
     playAlertSound('HIGH');
-    addToast('warning', 'Test Alert Triggered', 'Tested high-risk warning sound and two-pulse vibration.');
+    notifyAlert({
+      id: `test-feedback-${Date.now()}`,
+      title: 'HIGH Risk Test: Guwahati Ridge',
+      message: 'Test simulation alert — High landslide hazard detected. Audible chime and vibration triggered.',
+      severity: 'HIGH',
+    });
+    addToast('warning', 'Test Alert Triggered', 'Tested high-risk warning sound, vibration, and notification.');
   };
 
   const active = alerts.filter((a) => a.status === 'Sent').length;
@@ -77,14 +85,14 @@ export const Alerts: React.FC = () => {
               <button
                 type="button"
                 onClick={handleRequestPermission}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#071A2B] hover:bg-[#0B3948] text-white text-xs font-semibold tracking-wide transition-all shadow-sm"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#071A2B] hover:bg-[#0B3948] active:bg-[#040f1a] text-white text-xs font-semibold tracking-wide transition-all shadow-sm min-h-[44px]"
               >
-                <Bell size={14} className="text-[#14B8A6]" />
+                <Bell size={15} className="text-[#14B8A6]" />
                 Enable Device Alerts
               </button>
             ) : (
-              <span className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
-                <BellRing size={14} className="text-emerald-600" />
+              <span className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold min-h-[44px]">
+                <BellRing size={15} className="text-emerald-600" />
                 Alerts Active
               </span>
             )}
@@ -92,43 +100,43 @@ export const Alerts: React.FC = () => {
             <button
               type="button"
               onClick={handleTestAlert}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs font-semibold transition-colors min-h-[44px]"
               title="Test Alert Chime & Vibration"
             >
-              <Volume2 size={14} className="text-slate-500" />
-              <Vibrate size={14} className="text-slate-500" />
+              <Volume2 size={15} className="text-slate-500" />
+              <Vibrate size={15} className="text-slate-500" />
               Test Feedback
             </button>
           </div>
         </div>
 
-        {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-[#DC2626]/15 bg-red-50/50 p-4 flex items-center gap-3 shadow-sm">
-            <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-              <AlertTriangle size={18} className="text-[#DC2626]" />
+        {/* Summary cards — responsive grid for mobile */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="bg-white rounded-xl border border-[#DC2626]/15 bg-red-50/50 p-4 flex items-center gap-3.5 shadow-sm">
+            <div className="w-11 h-11 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle size={20} className="text-[#DC2626]" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-[#DC2626]">{active}</div>
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active</div>
+              <div className="text-2xl font-bold text-[#DC2626] leading-none mb-1">{active}</div>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Alerts</div>
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-[#F59E0B]/15 bg-amber-50/50 p-4 flex items-center gap-3 shadow-sm">
-            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-              <Activity size={18} className="text-[#F59E0B]" />
+          <div className="bg-white rounded-xl border border-[#F59E0B]/15 bg-amber-50/50 p-4 flex items-center gap-3.5 shadow-sm">
+            <div className="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <Activity size={20} className="text-[#F59E0B]" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-[#F59E0B]">{acknowledged}</div>
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Acknowledged</div>
+              <div className="text-2xl font-bold text-[#F59E0B] leading-none mb-1">{acknowledged}</div>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Acknowledged</div>
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-[#16A34A]/15 bg-green-50/50 p-4 flex items-center gap-3 shadow-sm">
-            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-              <CheckCircle size={18} className="text-[#16A34A]" />
+          <div className="bg-white rounded-xl border border-[#16A34A]/15 bg-green-50/50 p-4 flex items-center gap-3.5 shadow-sm">
+            <div className="w-11 h-11 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+              <CheckCircle size={20} className="text-[#16A34A]" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-[#16A34A]">{resolved}</div>
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Resolved</div>
+              <div className="text-2xl font-bold text-[#16A34A] leading-none mb-1">{resolved}</div>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Resolved</div>
             </div>
           </div>
         </div>
